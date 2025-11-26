@@ -10,6 +10,7 @@
     <script src="../js/dateselectionaddload.js"></script>
     <script src="../js/geolocation.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="../css/headerfooterstyle.css">
     <link rel="stylesheet" href="../css/addtable.css">
     <link rel="stylesheet" href="../css/sweetAlert.css">
     <title>Add Load</title>
@@ -43,6 +44,8 @@ if (isset($_POST['signupBtn'])) {
         $scheduled_time = $_POST['scheduled_time'];
         $origin_latitude = $_POST['origin_latitude'];
         $origin_longitude = $_POST['origin_longitude'];
+        $destination_latitude = $_POST['destination_latitude'];
+        $destination_longitude = $_POST['destination_longitude'];
 
         // Validate form fields
         $errors = [];
@@ -70,6 +73,12 @@ if (isset($_POST['signupBtn'])) {
         }
         if ($origin_longitude !== '' && (!is_numeric($origin_longitude) || $origin_longitude < -180 || $origin_longitude > 180)) {
             $errors[] = "Origin longitude must be a numeric value between -180 and 180.";
+        }
+        if ($destination_latitude !== '' && (!is_numeric($destination_latitude) || $destination_latitude < -90 || $destination_latitude > 90)) {
+            $errors[] = "Destination latitude must be a numeric value between -90 and 90.";
+        }
+        if ($destination_longitude !== '' && (!is_numeric($destination_longitude) || $destination_longitude < -180 || $destination_longitude > 180)) {
+            $errors[] = "Destination longitude must be a numeric value between -180 and 180.";
         }
         // Validate the scheduled_time field
         if (empty($scheduled_time)) {
@@ -115,16 +124,18 @@ if (isset($_POST['signupBtn'])) {
             // Calculate the dynamic price
             $calculatedPrice = calculateDynamicPrice($conn, $distance, $weight, $scheduled_time);
 
-            $insertSql = "INSERT INTO loaddetails (name, origin, destination, distance, description, weight, status, consignor_id, img_srcs, scheduled_time, price, origin_latitude, origin_longitude)
-                    VALUES (?, ?, ?, ?, ?, ?, 'notBooked', ?, ?, ?, ?, ?, ?)";
+            $insertSql = "INSERT INTO loaddetails (name, origin, destination, distance, description, weight, status, consignor_id, img_srcs, scheduled_time, price, origin_latitude, origin_longitude, destination_latitude, destination_longitude)
+                    VALUES (?, ?, ?, ?, ?, ?, 'notBooked', ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($insertSql);
             $distanceVal = floatval($distance);
             $weightVal = floatval($weight);
             $priceVal = floatval($calculatedPrice);
             $originLatVal = ($origin_latitude === '') ? null : floatval($origin_latitude);
             $originLongVal = ($origin_longitude === '') ? null : floatval($origin_longitude);
+            $destinationLatVal = ($destination_latitude === '') ? null : floatval($destination_latitude);
+            $destinationLongVal = ($destination_longitude === '') ? null : floatval($destination_longitude);
             $stmt->bind_param(
-                "sssdsdissddd",
+                "sssdsdisssdddd",
                 $name,
                 $origin,
                 $destination,
@@ -136,8 +147,11 @@ if (isset($_POST['signupBtn'])) {
                 $scheduled_time,
                 $priceVal,
                 $originLatVal,
-                $originLongVal
+                $originLongVal,
+                $destinationLatVal,
+                $destinationLongVal
             );
+
 
             if ($stmt->execute()) {
                 header("Location: addload.php?success=1");
@@ -155,6 +169,66 @@ if (isset($_POST['signupBtn'])) {
     }
 }
 ?>
+
+    <header>
+        <nav>
+            <a href="../home.php">
+                <img class="logo" src="../img/defaultImg/mainLogo2.png" alt="logo">
+            </a>
+            <div class="nav-actions">
+                <?php if($_SESSION['usertype'] == 'carrier'){ ?>
+                <button type="button" id="global_location_status" class="location-indicator" data-status="loading" aria-label="Refreshing location" title="Refreshing location">
+                    <span class="location-indicator__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M12 2c-3.314 0-6 2.686-6 6c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6zm0 8a2 2 0 1 1 0-4a2 2 0 0 1 0 4z"></path>
+                        </svg>
+                    </span>
+                    <span class="location-indicator__dot" aria-hidden="true"></span>
+                </button>
+                <?php } ?>
+                <div class="nav__links">
+                    <img src="../<?php echo $_SESSION['profilePic'] ?>" onclick='toggleMenu()'>
+                </div>
+            </div>
+            <div class="sub-menu-wrap" id="subMenu">
+                <div class="sub-menu">
+                    <div class="user-info">
+                        <img src="../<?php echo $_SESSION['profilePic'] ?>">
+                        <h2><?php echo $_SESSION['name'];?></h2>
+                    </div>
+                    <hr>
+                    <a href="../profile.php" class="sub-menu-link">
+                        <img src="../<?php echo $_SESSION['profilePic'] ?>">
+                        <p>Profile</p>
+                    </a>
+                    <a href="../home.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/home.png">
+                        <p>Home</p>
+                    </a>
+                    <?php if($_SESSION['usertype'] == 'carrier'){?>
+                    <a href="../history.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/setting.png">
+                        <p>History</p>
+                    </a>
+                    <?php } ?>
+                    <a href="../backend/logoutmodule.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/logout.png">
+                        <p>Logout</p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <script src="../js/dropdownmenu.js"></script>
+    <?php if($_SESSION['usertype'] == 'carrier'){ ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof startLocationHeartbeat === 'function') {
+                startLocationHeartbeat(null, null, 'global_location_status', '../backend/update_location.php', 10 * 60 * 1000);
+            }
+        });
+    </script>
+    <?php } ?>
 
     <div class="add-main">
         <div class="form-header">

@@ -28,6 +28,80 @@ nav{
     margin-right: 10px; /* Adjust the margin as needed */
 }
 
+.nav-actions{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.location-indicator{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+}
+
+.location-indicator:hover{
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.location-indicator:focus{
+    outline: 2px solid #c4f1e0;
+    outline-offset: 2px;
+}
+
+.location-indicator__icon{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-indicator svg{
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+.location-indicator__dot{
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #a7f3d0;
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.25);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.location-indicator[data-status="loading"] .location-indicator__dot{
+    background: #fbbf24;
+    box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.25);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.location-indicator[data-status="error"]{
+    border-color: #fca5a5;
+    background: rgba(239, 68, 68, 0.12);
+    color: #ffecec;
+}
+
+.location-indicator[data-status="error"] .location-indicator__dot{
+    background: #ef4444;
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.25);
+    animation: none;
+}
+
+@keyframes pulse{
+    0% { transform: scale(1); opacity: 1; }
+    70% { transform: scale(1.2); opacity: 0.35; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 .profileoption{
     display: flex;
     flex-wrap: wrap;

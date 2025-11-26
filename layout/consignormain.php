@@ -1,10 +1,3 @@
-<link rel="stylesheet" href="css/maincontentstyle.css">
-<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
-<script src="js/sweetalert.js"></script>
-
-<link rel="stylesheet" href="css/sweetAlert.css">
-<title>Home-Consignor</title>
-
 <?php
 // Check if the session has not started, then start the session
 if (session_status() == PHP_SESSION_NONE) {
@@ -95,4 +88,3 @@ $result = $conn->query($sql);
     </div>
 </div>
 <script src="js/confirmationSA.js"></script>
-

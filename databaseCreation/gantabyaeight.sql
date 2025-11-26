@@ -61,7 +61,10 @@ CREATE TABLE IF NOT EXISTS `carrierdetails` (
   `password` varchar(255) NOT NULL,
   `reset_otp_hash` varchar(64) DEFAULT NULL,
   `reset_otp_expires_at` datetime DEFAULT NULL,
-  `availability` varchar(10) DEFAULT 'yes'
+  `availability` varchar(10) DEFAULT 'yes',
+  `last_latitude` decimal(10,8) DEFAULT NULL,
+  `last_longitude` decimal(11,8) DEFAULT NULL,
+  `last_location_updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
