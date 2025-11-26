@@ -4,104 +4,128 @@
     font-family: 'Roboto', sans-serif;
     box-sizing: border-box;
 }
+
+:root {
+    --bg: #292929;
+    --panel: #333333;
+    --card: #2a2a2a;
+    --border: #3f3f3f;
+    --text: #f2f2f2;
+    --muted: #b7b7b7;
+    --accent: #01896e;
+    --accent-2: #08a980;
+}
+
+body, html{
+    background-color: var(--bg);
+    color: var(--text);
+}
+
 .main-content{
     margin: 0 auto;
     width: 100%;
-    background-color: #292929;
-    padding: 13px 20%;
+    max-width: 1200px;
+    padding: 20px 4vw;
 }
 
 .post-container{
     width: 100%;
-    min-height: max-content;
-    background: #333333;
-    border-radius: 6px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 0 44px rgba(8, 7, 16, .6);
+    max-width: 960px;
+    background: var(--card);
+    border-radius: 14px;
+    padding: 18px;
+    margin: 18px auto;
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 } 
 
 .content-detail {
     display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    margin: 10px 5px;
-    gap: 5%;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
+.content-image{
+    flex: 0 0 320px;
+    max-width: 320px;
+}
 
 .content-image img {
-    height: 20rem;
-    border-radius: 14px;
-    max-width: 30rem;
+    height: 14rem;
+    border-radius: 12px;
     width: 100%;
     object-fit: cover;
+    border: 1px solid var(--border);
 }
 
-
 .content-description{
-    max-width: 15rem;
-    width: 100%;
-    text-align: left;
+    flex: 1 1 320px;
+    max-width: 380px;
 }
 
 .content-description h3{
-    padding: 15px;
+    padding: 8px 0;
+    margin: 0;
+    color: var(--text);
 }
 
 .content-description li{
-    padding: 5px;
+    padding: 4px 0;
     list-style: none;
+    color: var(--muted);
 }
 
 .activity-icon{
-    margin-top: 15px;
+    margin-top: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .post-container hr{
     border: 0;
     height: 1px;
-    background: #858585;
-    margin: 15px 0 10px;
+    background: #4a4a4a;
+    margin: 12px 0 10px;
 }
 
 .activity-icon button{
-    background: transparent;
-    border: 1px solid grey;
+    background: var(--accent);
+    color: #fff;
+    border: none;
     outline: 0;
-    height: 40px;
-    margin-bottom: 10px;
-    border-radius: 20px;
-    transition: .4s;
-    min-width: 400px;
+    height: 42px;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    transition: .2s ease;
+    min-width: 180px;
+    max-width: 220px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.95rem;
 }
-
 
 .activity-icon button:hover{
-    transform: scale(1.02);
-    background-color: #01896e;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(1, 137, 110, 0.35);
 }
-
 
 /* Consignor-main */
-html, body{
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: #292929;
-    color: #b7b7b7;
-}
 .congmain {
     margin: 0 auto ;
     width: 100% ;
-    padding: 5px 10% ;  
+    padding: 5px 6vw;  
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
-
 
 .addForm{
     display: flex;
@@ -109,84 +133,89 @@ html, body{
 }
 
 .addForm button {
-    padding: 0.5rem 2rem;
+    padding: 0.65rem 2rem;
     box-sizing: border-box;
     border: 0;
     outline: 0;
-    border-radius: 10px;
-    background-color: #01896e;
-
+    border-radius: 12px;
+    background-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
 .addForm button:hover{
     background-color: #0e6553;
+    transform: translateY(-1px);
 }
 
 .table-container{
     flex: 1;
-    border-radius: 10px;
-    background: #333333;
-    box-shadow: 0 0 44px rgba(8, 7, 16, .6);
+    border-radius: 14px;
+    background: var(--card);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
     overflow: hidden;
     margin: 10px 0;
-    padding: 5px;
+    padding: 10px;
     text-align: center;
 }
 
+.table-container .head h2 {
+    margin: 8px 0 12px;
+    color: var(--text);
+}
 
 .congmain table{
     width: 95%;
     border-collapse: collapse;
     margin: 0.8rem auto;
+    color: var(--text);
 }
 
 th{
     padding: 0.8rem 1rem;
-    background-color: #01896e;
+    background-color: var(--accent);
 }
 
-th{
+td{
     padding: .75rem .9375rem;
+    color: var(--muted);
 }
 
 .td-center{
     display: flex;
     justify-content: center;
-    gap: 4%;
+    gap: 8px;
+    flex-wrap: wrap;
 }
-
 
 .td-center button{
-    color: rgb(0, 0, 0);
+    color: #fff;
     border: 0;
-    padding: 0.3125rem 0.4375rem;
+    padding: 0.45rem 0.75rem;
     font-size: 14px;
     cursor: pointer;
-    border-radius: .525rem;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    width: 5rem;
+    border-radius: 10px;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    min-width: 5rem;
 }
 
-  
 .moreBtn button{
-    background-color: rgb(3, 245, 3);
+    background-color: #10b981;
 }
-/* Change background color on hover */
 .moreBtn button:hover{
-    background-color: rgba(0, 110, 0, 0.771);
+    background-color: #0d9c6e;
 }
   
 .deleteBtn button,
 .cancelBtn button {
-    background-color: rgb(254, 65, 65);
+    background-color: #ef4444;
 }
-
-/* Change background color on hover */
 .deleteBtn button:hover,
 .cancelBtn button:hover {
-    background-color: rgb(186, 4, 4); /* Red color */
+    background-color: #dc2626;
 }
-
 
 td img{
     width: 2.25rem;
@@ -195,34 +224,34 @@ td img{
     margin-left: .5rem;
     border-radius: 50%;
     vertical-align: middle;
-}
-
-td{
-    padding: .5rem;
+    border: 1px solid var(--border);
 }
 
 /* Zebra pattern */
 table  tr:nth-child(odd){
-    background:#3d3d3d;
+    background:#2f2f2f;
 }
 
 table tr:hover{
-    transform: scale(1.02);
+    background: #363636;
 }
 
 .status{
-    padding: .4rem 0;
-    border-radius: 2rem;
+    padding: .4rem 0.75rem;
+    border-radius: 999px;
+    display: inline-block;
+    color: #0f172a;
+    font-weight: 700;
 }
 
 .status.delivered{
-    background-color: green;
+    background-color: #bbf7d0;
 } 
 .status.notBooked{
-    background-color: whitesmoke;
+    background-color: #e5e7eb;
 } 
 .status.booked{
-    background-color: yellow;
+    background-color: #fef08a;
 } 
 
 /* moredetailsconsignor */
@@ -236,7 +265,7 @@ table tr:hover{
 .headdetails{
     margin: 2rem;
     text-align: center;
-    color: #01896e;
+    color: var(--accent);
 }
 
 .backBtn{
@@ -248,11 +277,12 @@ table tr:hover{
     padding: .6rem 1rem;
     margin-right: 3rem;
     border: none;
-    background: #04b18f;
-    border-radius: 5px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
 }
 .backBtn button:hover{
-    background-color: #01896e;
+    background-color: #0e6553;
 }
 
 .more-img{
@@ -261,12 +291,14 @@ table tr:hover{
     max-width: 30rem;
     width: 100%;
     object-fit: cover;
+    border: 1px solid var(--border);
 }
 
 .delivered-dis{
     margin : 10px;
     text-align: center;
-    background-color: green;
+    background-color: #bbf7d0;
+    color: #064e3b;
     padding: 5px;
     border-radius: 10px;
 }
@@ -274,7 +306,7 @@ table tr:hover{
 .description-more{
     text-align: left;
     padding: 1.5rem;
-    border-right: 1px solid white;
+    border-right: 1px solid var(--border);
 }
 
 .more h3{

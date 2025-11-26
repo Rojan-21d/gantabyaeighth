@@ -1,8 +1,5 @@
-let subMenu = document.getElementById('subMenu');
-
-function toggleMenu() {
+let subMenu=document.getElementById("subMenu");
+function toggleMenu()
+{
     subMenu.classList.toggle("open-menu");
 }
-
-
-

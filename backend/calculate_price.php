@@ -66,33 +66,21 @@ function calculateDynamicPrice($db, $distance, $weight, $scheduled_time) {
 
 
 // Get the parameters from the AJAX request
-$distance = isset($_POST['distance']) ? (float)$_POST['distance'] : 0;
-$weight = isset($_POST['weight']) ? (float)$_POST['weight'] : 0;
-$scheduled_time = isset($_POST['scheduled_time']) ? $_POST['scheduled_time'] : date('Y-m-d H:i:s');
+// Handle AJAX price lookup only when explicitly requested.
+if (isset($_POST['calculatePrice'])) {
+    $distance = isset($_POST['distance']) ? (float)$_POST['distance'] : 0;
+    $weight = isset($_POST['weight']) ? (float)$_POST['weight'] : 0;
+    $scheduled_time = isset($_POST['scheduled_time']) ? $_POST['scheduled_time'] : date('Y-m-d H:i:s');
 
-$price = calculateDynamicPrice($conn, $distance, $weight, $scheduled_time);
+    $price = calculateDynamicPrice($conn, $distance, $weight, $scheduled_time);
 
-if ($price === null) {
-    // If there was an error or warning in calculation, exit without returning a price
-    exit;
-}
+    if ($price === null) {
+        // If there was an error or warning in calculation, exit without returning a price
+        exit;
+    }
 
-// Return the price as JSON
-if (json_encode(['price' => $price]) !== json_encode(['price' => 250])) {
-    // If it's not equal, return the JSON response
     echo json_encode(['price' => $price]);
 }
 
-function showAlert($message, $type = 'error') {
-    $title = ($type == "success") ? "Success" : (($type == "warning") ? "Warning" : "Error");
-    echo "<script>
-    Swal.fire({
-        icon: '$type',
-        title: '$title',
-        html: '$message',
-    }).then((result) => {
-        window.location.href = '../home.php'; // Redirect after alert
-    });
-    </script>";
-}
+
 ?>

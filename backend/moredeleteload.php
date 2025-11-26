@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/maincontentstyle.css">
     <link rel="stylesheet" href="../css/headerfooterstyle.css">
+    <link rel="stylesheet" href="../css/addtable.css">
     <link rel="stylesheet" href="../css/sweetAlert.css">
     <link rel="stylesheet" href="../css/submit_review.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -34,6 +34,69 @@
         });
     </script>";
     }    
+    ?>
+
+    <header>
+        <nav>
+            <a href="../home.php">
+                <img class="logo" src="../img/defaultImg/mainLogo2.png" alt="logo">
+            </a>
+            <div class="nav-actions">
+                <?php if($_SESSION['usertype'] == 'carrier'){ ?>
+                <button type="button" id="global_location_status" class="location-indicator" data-status="loading" aria-label="Refreshing location" title="Refreshing location">
+                    <span class="location-indicator__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M12 2c-3.314 0-6 2.686-6 6c0 4.5 6 12 6 12s6-7.5 6-12c0-3.314-2.686-6-6-6zm0 8a2 2 0 1 1 0-4a2 2 0 0 1 0 4z"></path>
+                        </svg>
+                    </span>
+                    <span class="location-indicator__dot" aria-hidden="true"></span>
+                </button>
+                <?php } ?>
+                <div class="nav__links">
+                    <img src="../<?php echo $_SESSION['profilePic'] ?>" onclick='toggleMenu()'>
+                </div>
+            </div>
+            <div class="sub-menu-wrap" id="subMenu">
+                <div class="sub-menu">
+                    <div class="user-info">
+                        <img src="../<?php echo $_SESSION['profilePic'] ?>">
+                        <h2><?php echo $_SESSION['name'];?></h2>
+                    </div>
+                    <hr>
+                    <a href="../profile.php" class="sub-menu-link">
+                        <img src="../<?php echo $_SESSION['profilePic'] ?>">
+                        <p>Profile</p>
+                    </a>
+                    <a href="../home.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/home.png">
+                        <p>Home</p>
+                    </a>
+                    <?php if($_SESSION['usertype'] == 'carrier'){?>
+                    <a href="../history.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/setting.png">
+                        <p>History</p>
+                    </a>
+                    <?php } ?>
+                    <a href="../backend/logoutmodule.php" class="sub-menu-link">
+                        <img src="../img/defaultImg/logout.png">
+                        <p>Logout</p>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <script src="../js/dropdownmenu.js"></script>
+    <?php if($_SESSION['usertype'] == 'carrier'){ ?>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof startLocationHeartbeat === 'function') {
+                startLocationHeartbeat(null, null, 'global_location_status', '../backend/update_location.php', 10 * 60 * 1000);
+            }
+        });
+    </script>
+    <?php } ?>
+
+    <?php
     if (isset($_POST['action']) && isset($_POST['id'])) {
         $id = $_POST['id'];
         $_SESSION['load_id'] = $id;
@@ -90,169 +153,179 @@
             $row = mysqli_fetch_array($result2);
             ?>
 
-            <div class="headdetails">
-                <h2>Load Details</h2>
-            </div>
-            <div class="backBtn">
-                <a href="../home.php"><button type="button">Back</button></a>
-            </div>
-            <div class="more">
-                <div class="load-detail-single description-more">
-                    <img src="../<?php echo $more['img_srcs']; ?>" alt="Image" class="more-img">
-                    <div class="">
-                        <h3><?php echo $more['name']; ?></h3>
-                        <ul>
-                            <li>Origin: <?php echo $more['origin']; ?></li>
-                            <li>Destination: <?php echo $more['destination']; ?></li>
-                            <li>Distance: <?php echo $more['distance']; ?> Km</li>
-                            <li>Weight: <?php echo $more['weight']; ?> Ton</li>
-                            <li>Description: <?php echo $more['description']; ?></li>
-                            <li>Sceduled by: <?php echo $more['scheduled_time']; ?></li>
-                            <?php
-                            if ($stat === 'delivered') {
-                                $sql2 = "SELECT delivered_time FROM shipment WHERE load_id = '$id'";
-                                $result2 = $conn->query($sql2);
-                                if ($result2 && $result2->num_rows > 0) {
-                                    $row2 = $result2->fetch_assoc();
-                                    $delivered_time = $row2['delivered_time'];
+            <?php
+            $statusLabel = ucfirst($stat);
+            $deliveredTime = null;
+            $deliveryNote = null;
+            if ($stat === 'delivered') {
+                $sql2 = "SELECT delivered_time FROM shipment WHERE load_id = '$id'";
+                $result2 = $conn->query($sql2);
+                if ($result2 && $result2->num_rows > 0) {
+                    $row2 = $result2->fetch_assoc();
+                    $deliveredTime = $row2['delivered_time'];
+                    $scheduled_time_dt = new DateTime($more['scheduled_time']);
+                    $delivered_time_dt = new DateTime($deliveredTime);
+                    $interval = $scheduled_time_dt->diff($delivered_time_dt);
+                    $days = $interval->days;
+                    $hours = $interval->h;
+                    if ($days === 0 && $hours === 0) {
+                        $deliveryNote = "Delivery was on time.";
+                    } else {
+                        $aheadOrLate = ($interval->invert == 1) ? "ahead of" : "late by";
+                        $deliveryNote = "Delivery was $aheadOrLate {$days}d {$hours}h.";
+                    }
+                }
+            }
+            ?>
 
-                                    echo "<li>Delivered Time: " . $delivered_time . "</li>";
-
-                                    // Calculate the difference between scheduled_time and delivered_time
-                                    $scheduled_time = new DateTime($more['scheduled_time']);
-                                    $delivered_time_dt = new DateTime($delivered_time);
-
-                                    $interval = $scheduled_time->diff($delivered_time_dt);
-                                    $days = $interval->days;
-                                    $hours = $interval->h;
-
-                                    if ($days === 0 && $hours === 0) {
-                                        echo "<li>Delivery was on time.</li>";
-                                    } else {
-                                        // Determine if delivery was ahead of or late by the scheduled time
-                                        $aheadOrLate = ($interval->invert == 1) ? "ahead of" : "late by";
-                                        echo "<li>Delivery was $aheadOrLate $days days and $hours hours</li>";
-                                    }
-                                }
-                            }
-
-                            ?>
-                        </ul>
+            <div class="add-main">
+                <div class="form-header">
+                    <p class="eyebrow">Load Details</p>
+                    <h2><?php echo htmlspecialchars($more['name']); ?></h2>
+                    <div class="status-chip status-<?php echo htmlspecialchars($stat); ?>"><?php echo htmlspecialchars($statusLabel); ?></div>
+                    <p class="subtitle">Review shipment info, participants, and take action.</p>
+                    <div class="cta-row">
+                        <a class="ghost-btn" href="../home.php">Back</a>
                     </div>
                 </div>
 
-                <?php
-                if ($_SESSION['usertype'] == "carrier") {
-                    echo "
-                    <div class='takenby description-more'>
-                    <h3 style='text-align:center' important>Load By</h3>";
-                        $sql3 = "SELECT consignordetails.id as consignorID, consignordetails.name, consignordetails.email, consignordetails.address, consignordetails.contact, consignordetails.img_srcs
-                    FROM consignordetails
-                    INNER JOIN shipment ON consignordetails.id = shipment.consignor_id    
-                    WHERE shipment.load_id = '$id'";
-                        $result3 = $conn->query($sql3);
-                        if ($result3 === false) {
-                            echo "Error: " . $conn->error;
-                        } else {
-                            $rowShip = mysqli_fetch_assoc($result3);
-                            if ($rowShip === null) {
-                                echo "No booking information available.";
-                            } else {
-                                echo '<ul>';
-                                echo '<li style="text-align:center" important><img src="../' . $rowShip["img_srcs"] . '" style="height: 85px; width: auto;"></li>';
-                                echo '<li>Name: ' . $rowShip["name"] . '</li>';
-                                echo '<li>Email: ' . $rowShip["email"] . '</li>';
-                                echo '<li>Address: ' . $rowShip["address"] . '</li>';
-                                echo '<li>Contact: ' . $rowShip["contact"] . '</li>';
-                                echo '</ul>';
-                            }
-                            echo "</div>";
-                        }
-                        echo "<div class='more-action description-more'>
-                    <h3>Action</h3>";
-                        if ($stat !== 'delivered') {
-                            echo "
-                        <div class='td-center'>
-                            <form action='' method='post' class='cancelBtn' onsubmit=\"confirmCancel(event)\">
-                                <input type='hidden' name='action' value='cancel'>
-                                <input type='hidden' name='id' value='" . $id . "'>
-                                <input type='hidden' name='shipment_id' value='" . $row['id'] . "'> <!--passing shipment id-->
-                                <button type='submit'>Cancel</button>
-                            </form>
-                            <form action='' method='post' class='deliverBtn' onsubmit=\"confirmDeliver(event)\">
-                                <input type='hidden' name='action' value='deliver'>
-                                <input type='hidden' name='id' value='" . $id . "'>
-                                <button type='submit'>Delivered</button>
-                            </form>
-                        </div>";
-                    } else {
-                        echo "<p style='color: green; text-align: center;'>Delivered</p>";
-                    }
-                    echo "</div>";
-                } elseif ($_SESSION['usertype'] == "consignor") {
-                    echo "
-                    <div class='takenby description-more'>
-                        <h3  style='text-align:center' important>Booked By</h3>";
-                        $sql3 = "SELECT shipment.id AS shipmentID, carrierdetails.id as carrierID, carrierdetails.name, carrierdetails.email, carrierdetails.address, carrierdetails.contact, carrierdetails.img_srcs
-                    FROM carrierdetails
-                    INNER JOIN shipment ON carrierdetails.id = shipment.carrier_id
-                    WHERE shipment.load_id = '$id'";
+                <div class="detail-card">
+                    <div class="detail-media">
+                        <img src="../<?php echo $more['img_srcs']; ?>" alt="Load image">
+                    </div>
+                    <ul class="kv-list">
+                        <li><span>Origin</span><span><?php echo htmlspecialchars($more['origin']); ?></span></li>
+                        <li><span>Destination</span><span><?php echo htmlspecialchars($more['destination']); ?></span></li>
+                        <li><span>Distance</span><span><?php echo htmlspecialchars($more['distance']); ?> km</span></li>
+                        <li><span>Weight</span><span><?php echo htmlspecialchars($more['weight']); ?> ton</span></li>
+                        <li><span>Description</span><span><?php echo htmlspecialchars($more['description']); ?></span></li>
+                        <li><span>Scheduled</span><span><?php echo htmlspecialchars($more['scheduled_time']); ?></span></li>
+                        <?php if ($deliveredTime) { ?>
+                            <li><span>Delivered</span><span><?php echo htmlspecialchars($deliveredTime); ?></span></li>
+                            <?php if ($deliveryNote) { ?>
+                                <li><span>Note</span><span><?php echo htmlspecialchars($deliveryNote); ?></span></li>
+                            <?php } ?>
+                        <?php } ?>
+                    </ul>
 
+                    <?php
+                    if ($_SESSION['usertype'] == "carrier") {
+                        $sql3 = "SELECT consignordetails.id as consignorID, consignordetails.name, consignordetails.email, consignordetails.address, consignordetails.contact, consignordetails.img_srcs
+                            FROM consignordetails
+                            INNER JOIN shipment ON consignordetails.id = shipment.consignor_id    
+                            WHERE shipment.load_id = '$id'";
                         $result3 = $conn->query($sql3);
-                        if ($result3 === false) {
-                            echo "Error: " . $conn->error;
-                        } else {
-                            $rowShip = mysqli_fetch_assoc($result3);
-                        
-                            if ($rowShip === null) {
-                                echo "No booking information available.";
+                        ?>
+                        <div class="detail-section">
+                            <h3 class="card-title">Load By</h3>
+                            <?php
+                            if ($result3 === false) {
+                                echo "<p class='note'>Error: " . htmlspecialchars($conn->error) . "</p>";
                             } else {
-                                echo '<ul>';
-                                echo '<li style="text-align:center" important><img src="../' . $rowShip["img_srcs"] . '" style="height: 85px; width: auto;"></li>';
-                                echo '<li>Name: ' . $rowShip["name"] . '</li>';
-                                echo '<li>Email: ' . $rowShip["email"] . '</li>';
-                                echo '<li>Address: ' . $rowShip["address"] . '</li>';
-                                echo '<li>Contact: ' . $rowShip["contact"] . '</li>';
-                                echo '</ul>';
-                                echo "<div class='td-center'>";
-                                // After delivered no cancel
-                                if ($stat !== 'delivered') {
-                                    echo "<form action='' method='post' class='cancelBtn' onsubmit=\"confirmCancel(event)\">
-                                            <input type='hidden' name='action' value='cancel'>
-                                            <input type='hidden' name='id' value='" . $id . "'>
-                                            <input type='hidden' name='shipment_id' value='" . $row['id'] . "'> <!--passing shipment id-->
-                                            <button type='submit' name='cancel'>Cancel</button>
-                                        </form>";
+                                $rowShip = mysqli_fetch_assoc($result3);
+                                if ($rowShip === null) {
+                                    echo "<p class='note'>No booking information available.</p>";
                                 } else {
-                                    echo "<p style='color: green; text-align: center;'>Delivered</p>";
+                                    ?>
+                                    <div class="person">
+                                        <img src="../<?php echo $rowShip["img_srcs"]; ?>" alt="Consignor" class="avatar">
+                                        <div>
+                                            <p class="person-name"><?php echo htmlspecialchars($rowShip["name"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["email"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["contact"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["address"]); ?></p>
+                                        </div>
+                                    </div>
+                                    <?php
                                 }
-                                echo "</div>";
                             }
-                        }
-                        echo "</div>";
-                        echo "<div class='more-action description-more'>
-                        <h3>Action</h3>
-                        <div class='td-center'>";
-                        // After delivered no edit
-                        if ($stat !== 'delivered') {
-                            echo "
-                            <form action='' method='post' class='moreBtn'> <!--class more for css-->
-                                <input type='hidden' name='action' value='edit'>
-                                <input type='hidden' name='id' value='" . $id . "'>
-                                <button type='submit'>Edit</button>
-                            </form>";
-                        }
-                        echo "                                        
-                            <form action='' method='post' class='deleteBtn' onsubmit=\"confirmDelete(event)\">
-                                <input type='hidden' name='action' value='delete'>
-                                <input type='hidden' name='id' value='" . $id . "'>
-                                <input type='hidden' name='img_srcs' value='" . htmlspecialchars($more['img_srcs'], ENT_QUOTES, 'UTF-8') . "'>
-                                <button type='submit'>Delete</button>
-                            </form>
+                            ?>
                         </div>
-                    </div>";
-                }
-                ?>
+                        <div class="detail-section detail-actions">
+                            <h3 class="card-title">Actions</h3>
+                            <?php if ($stat !== 'delivered') { ?>
+                            <div class="action-row">
+                                <form action="" method="post" onsubmit="confirmCancel(event)">
+                                    <input type="hidden" name="action" value="cancel">
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="shipment_id" value="<?php echo $row['id']; ?>">
+                                    <button type="submit" class="ghost-btn">Cancel</button>
+                                </form>
+                                <form action="" method="post" onsubmit="confirmDeliver(event)">
+                                    <input type="hidden" name="action" value="deliver">
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <button type="submit" class="primary-btn">Delivered</button>
+                                </form>
+                            </div>
+                            <?php } else { ?>
+                                <p class="note">Delivered</p>
+                            <?php } ?>
+                        </div>
+                        <?php
+                    } elseif ($_SESSION['usertype'] == "consignor") {
+                        $sql3 = "SELECT shipment.id AS shipmentID, carrierdetails.id as carrierID, carrierdetails.name, carrierdetails.email, carrierdetails.address, carrierdetails.contact, carrierdetails.img_srcs
+                            FROM carrierdetails
+                            INNER JOIN shipment ON carrierdetails.id = shipment.carrier_id
+                            WHERE shipment.load_id = '$id'";
+                        $result3 = $conn->query($sql3);
+                        ?>
+                        <div class="detail-section">
+                            <h3 class="card-title">Booked By</h3>
+                            <?php
+                            if ($result3 === false) {
+                                echo "<p class='note'>Error: " . htmlspecialchars($conn->error) . "</p>";
+                            } else {
+                                $rowShip = mysqli_fetch_assoc($result3);
+                                if ($rowShip === null) {
+                                    echo "<p class='note'>No booking information available.</p>";
+                                } else {
+                                    ?>
+                                    <div class="person">
+                                        <img src="../<?php echo $rowShip["img_srcs"]; ?>" alt="Carrier" class="avatar">
+                                        <div>
+                                            <p class="person-name"><?php echo htmlspecialchars($rowShip["name"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["email"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["contact"]); ?></p>
+                                            <p class="person-meta"><?php echo htmlspecialchars($rowShip["address"]); ?></p>
+                                        </div>
+                                    </div>
+                                    <?php if ($stat !== 'delivered') { ?>
+                                        <form action="" method="post" onsubmit="confirmCancel(event)" class="single-action">
+                                            <input type="hidden" name="action" value="cancel">
+                                            <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                            <input type="hidden" name="shipment_id" value="<?php echo $row['id']; ?>">
+                                            <button type="submit" class="ghost-btn">Cancel</button>
+                                        </form>
+                                    <?php } else { ?>
+                                        <p class="note">Delivered</p>
+                                    <?php } ?>
+                                    <?php
+                                }
+                            }
+                            ?>
+                        </div>
+                        <div class="detail-section detail-actions">
+                            <h3 class="card-title">Actions</h3>
+                            <div class="action-row">
+                                <?php if ($stat !== 'delivered') { ?>
+                                <form action="" method="post" class="moreBtn">
+                                    <input type="hidden" name="action" value="edit">
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <button type="submit" class="primary-btn">Edit</button>
+                                </form>
+                                <?php } ?>
+                                <form action="" method="post" class="deleteBtn" onsubmit="confirmDelete(event)">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                                    <input type="hidden" name="img_srcs" value="<?php echo htmlspecialchars($more['img_srcs'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <button type="submit" class="ghost-btn">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                    ?>
+                </div>
             </div>
             <?php
         }
