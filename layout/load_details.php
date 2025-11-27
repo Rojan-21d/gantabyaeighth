@@ -39,7 +39,9 @@ if (!$load) {
     exit;
 }
 
-$hasCoords = !empty($load['origin_latitude']) && !empty($load['origin_longitude']);
+$hasOriginCoords = !empty($load['origin_latitude']) && !empty($load['origin_longitude']);
+$hasDestCoords = !empty($load['destination_latitude']) && !empty($load['destination_longitude']);
+$hasCoords = $hasOriginCoords || $hasDestCoords;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -143,7 +145,7 @@ $hasCoords = !empty($load['origin_latitude']) && !empty($load['origin_longitude'
         <div class="detail-card">
             <div class="map-panel">
                 <div class="map-toolbar">
-                    <div class="map-help">Map of pickup point</div>
+                    <div class="map-help">Map of origin and destination points</div>
                 </div>
                 <div id="detail_map" class="map-canvas"></div>
                 <?php if (!$hasCoords) { ?>
@@ -159,16 +161,51 @@ $hasCoords = !empty($load['origin_latitude']) && !empty($load['origin_longitude'
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
         (function() {
-            var hasCoords = <?php echo $hasCoords ? 'true' : 'false'; ?>;
-            if (!hasCoords || typeof L === 'undefined') return;
-            var lat = parseFloat('<?php echo $load['origin_latitude']; ?>');
-            var lng = parseFloat('<?php echo $load['origin_longitude']; ?>');
-            if (isNaN(lat) || isNaN(lng)) return;
-            var map = L.map('detail_map', { zoomControl: true }).setView([lat, lng], 12);
+            var hasOriginCoords = <?php echo $hasOriginCoords ? 'true' : 'false'; ?>;
+            var hasDestCoords = <?php echo $hasDestCoords ? 'true' : 'false'; ?>;
+            if ((!hasOriginCoords && !hasDestCoords) || typeof L === 'undefined') return;
+
+            var originLat = parseFloat('<?php echo $load['origin_latitude']; ?>');
+            var originLng = parseFloat('<?php echo $load['origin_longitude']; ?>');
+            var destLat = parseFloat('<?php echo $load['destination_latitude']; ?>');
+            var destLng = parseFloat('<?php echo $load['destination_longitude']; ?>');
+
+            var map = L.map('detail_map', { zoomControl: true }).setView([27.700769, 85.300140], 6);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
-            L.marker([lat, lng]).addTo(map);
+
+            var markers = [];
+
+            if (hasOriginCoords && !isNaN(originLat) && !isNaN(originLng)) {
+                var originMarker = L.marker([originLat, originLng]).addTo(map);
+                originMarker.bindPopup('Origin: <?php echo htmlspecialchars($load['origin']); ?>');
+                markers.push(originMarker);
+            }
+
+            if (hasDestCoords && !isNaN(destLat) && !isNaN(destLng)) {
+                var destMarker = L.marker([destLat, destLng]).addTo(map);
+                destMarker.bindPopup('Destination: <?php echo htmlspecialchars($load['destination']); ?>');
+                markers.push(destMarker);
+            }
+
+            if (markers.length > 0) {
+                var group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds());
+            }
+
+            // Optional: Draw route if both points are available
+            if (hasOriginCoords && hasDestCoords && !isNaN(originLat) && !isNaN(originLng) && !isNaN(destLat) && !isNaN(destLng)) {
+                fetch('https://router.project-osrm.org/route/v1/driving/' + originLng + ',' + originLat + ';' + destLng + ',' + destLat + '?overview=full&geometries=geojson')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.routes && data.routes.length > 0) {
+                            var route = data.routes[0].geometry;
+                            L.geoJSON(route).addTo(map);
+                        }
+                    })
+                    .catch(function() {});
+            }
         })();
     </script>
 </body>

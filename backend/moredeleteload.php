@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="../css/sweetAlert.css">
     <link rel="stylesheet" href="../css/submit_review.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <script src="../js/sweetalert.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <title>Load Details</title>
 </head>
 <body>
@@ -208,6 +210,12 @@
                         <?php } ?>
                     </ul>
 
+                    <div class="detail-section">
+                        <h3 class="card-title">Map Details</h3>
+                        <div id="load_map" class="map-canvas"></div>
+                        <small class="map-status" id="map_status">Using free OpenStreetMap and OSRM; results may be approximate.</small>
+                    </div>
+
                     <?php
                     if ($_SESSION['usertype'] == "carrier") {
                         $sql3 = "SELECT consignordetails.id as consignorID, consignordetails.name, consignordetails.email, consignordetails.address, consignordetails.contact, consignordetails.img_srcs
@@ -333,5 +341,55 @@
     include '../layout/footer.php';
     ?>
     <script src="../js/confirmationSA.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var mapEl = document.getElementById('load_map');
+            if (!mapEl || typeof L === 'undefined') {
+                return;
+            }
+
+            var originLat = <?php echo json_encode($more['origin_latitude']); ?>;
+            var originLng = <?php echo json_encode($more['origin_longitude']); ?>;
+            var destLat = <?php echo json_encode($more['destination_latitude']); ?>;
+            var destLng = <?php echo json_encode($more['destination_longitude']); ?>;
+
+            var map = L.map('load_map').setView([27.700769, 85.300140], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            var markers = [];
+
+            if (originLat && originLng) {
+                var originMarker = L.marker([originLat, originLng]).addTo(map);
+                originMarker.bindPopup('Origin: <?php echo htmlspecialchars($more['origin']); ?>');
+                markers.push(originMarker);
+            }
+
+            if (destLat && destLng) {
+                var destMarker = L.marker([destLat, destLng]).addTo(map);
+                destMarker.bindPopup('Destination: <?php echo htmlspecialchars($more['destination']); ?>');
+                markers.push(destMarker);
+            }
+
+            if (markers.length > 0) {
+                var group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds());
+            }
+
+            // Optional: Draw route if both points are available
+            if (originLat && originLng && destLat && destLng) {
+                fetch('https://router.project-osrm.org/route/v1/driving/' + originLng + ',' + originLat + ';' + destLng + ',' + destLat + '?overview=full&geometries=geojson')
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (data.routes && data.routes.length > 0) {
+                            var route = data.routes[0].geometry;
+                            L.geoJSON(route).addTo(map);
+                        }
+                    })
+                    .catch(function() {});
+            }
+        });
+    </script>
 </body>
 </html>
